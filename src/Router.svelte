@@ -39,7 +39,15 @@
 		font-family: "Roboto Mono", monospace, system-ui, sans-serif;
 		font-weight: 200;
 		background-color: #101114;
+		font-size: 2vh;
 		color: #ffffff;
+	}
+
+	:global(body) {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
 	}
 
 	div#container {

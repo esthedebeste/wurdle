@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "1.0.0",
 	"scripts": {
-		"start": "sirv public -s",
+		"start": "sirv public -s -H 0.0.0.0",
 		"build": "rollup -c",
 		"dev": "rollup -c -w",
 		"format": "prettier --plugin=./node_modules/prettier-plugin-svelte -w ."
