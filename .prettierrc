@@ -1,0 +1,8 @@
+{
+	"useTabs": true,
+	"trailingComma": "all",
+	"proseWrap": "always",
+	"endOfLine": "lf",
+	"svelteBracketNewLine": true,
+	"arrowParens": "avoid"
+}
