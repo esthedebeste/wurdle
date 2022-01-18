@@ -3,82 +3,87 @@
 	import { writable } from "svelte/store";
 	import Keyboard from "../components/Keyboard.svelte";
 	import Tiles from "../components/Tiles.svelte";
-	import { WORDS } from "../words.js";
+	import { sendNotification } from "../Notifications.svelte";
 
-	const wordLength = 5;
-	const maxGuesses = 6;
-	const solution = WORDS[Math.floor(Math.random() * WORDS.length)];
 	let currentGuess = 0;
-	const guesses: string[] = Array(maxGuesses).fill("");
+	export let solution: string;
+	export let wordLength: number;
+	export let maxGuesses: number;
+	export let validWords: Set<string>;
+	setContext("solution", solution);
 	setContext("wordLength", wordLength);
 	setContext("maxGuesses", maxGuesses);
-	console.log(solution);
-	setContext("solution", solution);
+	const guesses: string[] = Array(maxGuesses).fill("");
 	const correctness = writable({});
 	setContext("correctness", correctness);
 	let guess = "";
+
+	const endGame = async (win: boolean) => {
+		const share = guesses
+			.slice(0, currentGuess)
+			.map(guess =>
+				[...guess]
+					.map((c, i) =>
+						c === solution[i] ? "🟩" : solution.includes(c) ? "🟨" : "⬛",
+					)
+					.join(""),
+			);
+		const shareText = `Wurdle\n\n${share.join("\n")}`;
+		await navigator.clipboard.writeText(shareText);
+		sendNotification(`You ${win ? "won" : "lost"}! Copied share to clipboard.`);
+	};
+	const guessWord = () => {
+		if (guess.length !== wordLength)
+			return sendNotification("Word not long enough.");
+		if (guesses.includes(guess))
+			return sendNotification("You've already guessed that!");
+		if (!validWords.has(guess)) return sendNotification("That's not a word!");
+		guesses[currentGuess++] = guess;
+		if (guess === solution) endGame(true);
+		if (currentGuess === maxGuesses) endGame(false);
+		correctness.update(c => {
+			const chars = { ...c };
+			for (let i = 0; i < guess.length; i++) {
+				if (guess[i] === solution[i]) chars[guess[i]] = "c";
+				else if (solution.includes(guess[i])) {
+					if (chars[guess[i]] !== "c") chars[guess[i]] = "s";
+				} else chars[guess[i]] = "w";
+			}
+			return chars;
+		});
+		guess = "";
+	};
+
 	const type = async (event: CustomEvent) => {
 		if (event.detail === "back") return (guess = guess.slice(0, -1));
-		if (event.detail === "enter") {
-			if (guess.length !== wordLength) return;
-			if (guesses.includes(guess)) return alert("You've already guessed that!");
-			if (!WORDS.includes(guess)) return alert("That's not a word!");
-			guesses[currentGuess++] = guess;
-			if (guess === solution || currentGuess === maxGuesses) {
-				const share = [];
-				for (let g = 0; g < currentGuess; g++) {
-					const guess = guesses[g];
-					for (let i = 0; i < wordLength; i++)
-						share[g] =
-							(share[g] || "") +
-							(guess[i] === solution[i]
-								? "🟩"
-								: solution.includes(guess[i])
-								? "🟨"
-								: "⬛");
-				}
-				const shareText = `Wurdle\n\n${share.join("\n")}`;
-				await navigator.clipboard.writeText(shareText);
-				alert(
-					`You ${
-						guess === solution ? "won" : "lost"
-					}! Copied share to clipboard.`,
-				);
-			}
-			correctness.update(c => {
-				const chars = { ...c };
-				for (let i = 0; i < guess.length; i++) {
-					if (guess[i] === solution[i]) chars[guess[i]] = "c";
-					else if (solution.includes(guess[i])) {
-						if (chars[guess[i]] !== "c") chars[guess[i]] = "s";
-					} else chars[guess[i]] = "w";
-				}
-				return chars;
-			});
-			return (guess = "");
-		}
+		if (event.detail === "enter") return guessWord();
 		if (guess.length === wordLength) return;
 		guess += event.detail;
 	};
 </script>
 
-<div>
-	{#each [...Array(maxGuesses).keys()] as i}
-		{#if i === currentGuess}
-			<Tiles current={currentGuess === i} bind:word={guess} />
-		{:else}
-			<Tiles word={guesses[i]} />
-		{/if}
-	{/each}
+<main>
+	<div>
+		{#each [...Array(maxGuesses).keys()] as i}
+			{#if i === currentGuess}
+				<Tiles current={currentGuess === i} bind:word={guess} />
+			{:else}
+				<Tiles word={guesses[i]} />
+			{/if}
+		{/each}
+	</div>
 
 	<Keyboard on:type={type} />
-</div>
+</main>
 
 <style>
-	div {
+	main {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+	}
+	div {
+		margin-bottom: 2em;
 	}
 </style>

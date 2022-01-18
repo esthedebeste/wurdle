@@ -5,6 +5,7 @@
 		"target": "ES2020",
 		"module": "ESNext",
 		"lib": ["ES2020", "DOM"],
-		"sourceMap": true
+		"sourceMap": true,
+		"resolveJsonModule": true
 	}
 }

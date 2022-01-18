@@ -5,6 +5,7 @@
 	import type { SvelteComponent } from "svelte";
 	import { noop } from "svelte/internal";
 	import Link from "./components/Link.svelte";
+	import Notifications from "./Notifications.svelte";
 	export let navigate: (page: string) => void = noop;
 
 	export let pageComponent: Promise<typeof SvelteComponent>;
@@ -24,14 +25,13 @@
 		<Link href="/settings" title="Settings" {navigate}>⚙️</Link>
 	</nav>
 
-	<main>
-		{#await pageComponent}
-			<p>Loading...</p>
-		{:then pageComponent}
-			<svelte:component this={pageComponent} />
-		{/await}
-	</main>
+	{#await pageComponent}
+		<p>Loading...</p>
+	{:then pageComponent}
+		<svelte:component this={pageComponent} />
+	{/await}
 </div>
+<Notifications />
 
 <style>
 	@import url("/fonts/fonts.css");
@@ -43,15 +43,12 @@
 		color: #ffffff;
 	}
 
-	:global(body) {
+	div#container {
+		margin: auto;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
-	}
-
-	div#container {
-		margin: auto;
 	}
 
 	:global(a) {
@@ -73,18 +70,20 @@
 	nav {
 		display: flex;
 		flex-direction: row;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
-		gap: 1ch;
+		gap: 5ch;
 		font-size: 1.3em;
 		font-weight: 700;
 		border-bottom: 3px solid #ffffff;
 		margin-bottom: 1em;
 		width: 100%;
+		flex: 1 1 0;
 	}
 
-	main {
-		width: 100%;
+	:global(main) {
+		width: min(100%, 60ch);
+		flex: 1 1 0;
 	}
 
 	a.title {
