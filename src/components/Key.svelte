@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import type { Correctness } from "./Tile.svelte";
+	import type { Correctness } from "../game.js";
 
 	export let key: string;
 

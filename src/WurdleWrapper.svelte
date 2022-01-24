@@ -1,38 +1,28 @@
 <script lang="ts">
+	import { Game } from "./game.js";
 	import Wurdle from "./views/Wurdle.svelte";
+	let game = localStorage.getItem("current")
+		? Game.fromSave(
+				JSON.parse(localStorage.getItem(localStorage.getItem("current"))),
+		  )
+		: Game.random();
 
-	const game = async () => {
-		const {
-			wordLength,
-			maxGuesses,
-			pick,
-			valid,
-		}: {
-			wordLength: number;
-			maxGuesses: number;
-			pick: string[];
-			valid: string[];
-		} = await fetch("/default-config.json").then(res => res.json());
-		const choices = pick
-			.filter(word => word.length === wordLength)
-			.map(word => word.toLowerCase());
-		const solution = choices[Math.floor(Math.random() * choices.length)];
-		return {
-			wordLength,
-			maxGuesses,
-			solution,
-			validWords: new Set(
-				valid
-					.filter(word => word.length === wordLength)
-					.map(word => word.toLowerCase())
-					.concat(choices),
-			),
-		};
-	};
+	addEventListener("beforeunload", async () => {
+		const key = await (await game).save();
+		localStorage.setItem("current", key);
+	});
 </script>
 
-{#await game()}
+{#await game}
 	<p>Loading game...</p>
-{:then { wordLength, maxGuesses, solution, validWords }}
-	<Wurdle {wordLength} {maxGuesses} {solution} {validWords} />
+{:then resolved}
+	<Wurdle
+		game={resolved}
+		onRestart={async () => (
+			((await game).guessWord = () => {
+				throw new Error("AAAAAAAAAAA");
+			}),
+			(game = Game.random())
+		)}
+	/>
 {/await}

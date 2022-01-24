@@ -1,15 +1,7 @@
-<script lang="ts" context="module">
-	export type Wrong = "w";
-	export const wrong: Wrong = "w";
-	export type Somewhere = "s";
-	export const somewhere: Somewhere = "s";
-	export type Correct = "c";
-	export const correct: Correct = "c";
-	export type Correctness = Wrong | Somewhere | Correct;
-</script>
-
 <script lang="ts">
-	export let type: Wrong | Somewhere | Correct = "w";
+	import type { Correctness } from "../game.js";
+
+	export let type: Correctness = "w";
 </script>
 
 <span class={type}><slot /></span>
