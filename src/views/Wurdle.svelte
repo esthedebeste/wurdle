@@ -1,5 +1,10 @@
+<script lang="ts" context="module">
+	let currentKeyListener = (event: KeyboardEvent) => {};
+	document.addEventListener("keydown", e => currentKeyListener(e));
+</script>
+
 <script lang="ts">
-	import { onDestroy, setContext } from "svelte";
+	import { setContext } from "svelte";
 	import GameOver from "../components/GameOver.svelte";
 	import Keyboard from "../components/Keyboard.svelte";
 	import Tiles from "../components/Tiles.svelte";
@@ -41,7 +46,8 @@
 		guess += event.detail;
 	};
 
-	const keydownType = (event: KeyboardEvent) => {
+	// support desktop keyboards as well
+	currentKeyListener = event => {
 		if (event.code === "Backspace") return (guess = guess.slice(0, -1));
 		if (event.code === "Enter") return guessWord();
 		if (guess.length === wordLength) return;
@@ -49,9 +55,6 @@
 			guess += event.key.toLowerCase();
 		}
 	};
-	// support desktop keyboards as well
-	document.addEventListener("keydown", keydownType);
-	onDestroy(() => document.removeEventListener("keydown", keydownType));
 	export let onRestart: () => void;
 </script>
 
