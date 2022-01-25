@@ -1,0 +1,12 @@
+[
+	{
+		"name": "English",
+		"href": "/config/english.json",
+		"langCode": "en"
+	},
+	{
+		"name": "Dutch",
+		"href": "/config/dutch.json",
+		"langCode": "nl"
+	}
+]

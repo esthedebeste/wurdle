@@ -2,6 +2,7 @@
 	import { getContext } from "svelte";
 	import { fade } from "svelte/transition";
 	import { sendNotification } from "../Notifications.svelte";
+	import Localized from "./Localized.svelte";
 	export let restartable: boolean;
 	export let gameName: string;
 	export let shareText: string;
@@ -9,30 +10,30 @@
 	export let onRestart: () => void;
 	const solution = getContext("solution") as string;
 
-	const copyShare = () => {
-		navigator.clipboard.writeText(shareText);
-		sendNotification("Copied to clipboard!");
+	const copyShare = async () => {
+		await navigator.clipboard.writeText(shareText);
+		sendNotification("copied");
 	};
 </script>
 
 <div class="container" transition:fade={{ duration: 250 }} role="alertdialog">
 	<span class="content">
-		<h1>You {won ? "won" : "lost"}!</h1>
+		<h1><Localized key={won ? "won" : "lost"} /></h1>
 		<p class="share-text">
 			{shareText}
 		</p>
 		<p>
-			Game: {gameName} <br />
-			Solution: <span class="not-copyable">{solution}</span>
+			<Localized key="gameType" />: {gameName} <br />
+			<Localized key="solution" />: <span class="not-copyable">{solution}</span>
 		</p>
 		<div class="buttons">
 			<span>
 				<button class="restart" disabled={!restartable} on:click={onRestart}
-					>Restart</button
+					><Localized key="again" /></button
 				>
 			</span>
 			<button class="share" on:click={copyShare}>
-				Share
+				<Localized key="share" />
 				<img src="/copy.svg" alt="" aria-hidden={true} />
 			</button>
 		</div>

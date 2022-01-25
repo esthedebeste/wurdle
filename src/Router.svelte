@@ -6,8 +6,10 @@
 	import { noop } from "svelte/internal";
 	import Link from "./components/Link.svelte";
 	import Notifications from "./Notifications.svelte";
+	import { configStore } from "./settings.js";
 	export let navigate: (page: string) => void = noop;
 
+	$: wurdle = $configStore?.lang.wurdle.toUpperCase();
 	export let pageComponent: Promise<typeof SvelteComponent>;
 </script>
 
@@ -17,10 +19,10 @@
 		<a
 			href="/"
 			class="title"
-			title="WURDLE"
+			title={wurdle}
 			on:click|preventDefault={() => navigate("/")}
 		>
-			WURDLE
+			{wurdle}
 		</a>
 		<Link href="/settings" title="Settings" {navigate}>⚙️</Link>
 	</nav>

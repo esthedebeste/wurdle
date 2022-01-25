@@ -1,6 +1,7 @@
 import { writable, type Writable } from "svelte/store";
 // @ts-ignore
 import { sendNotification } from "./Notifications.svelte";
+import { configStore, type Config } from "./settings.js";
 
 export type Wrong = "w";
 export const wrong: Wrong = "w";
@@ -11,11 +12,11 @@ export const correct: Correct = "c";
 export type Correctness = Wrong | Somewhere | Correct;
 export class Game {
 	gameName: string;
-	config: string;
+	config: Config;
 	solution: string;
 	choices: string[];
 	validWords: Set<string>;
-	maxGuesses: any;
+	maxGuesses: number;
 	wordLength: number;
 	currentGuess: number;
 	gameOver: boolean;
@@ -24,9 +25,10 @@ export class Game {
 	guesses: string[];
 	shareText: string;
 	cheated: boolean;
+	won: boolean;
 
 	constructor({
-		config = "/default-config.json",
+		config = configStore.value,
 		wordLength = 5,
 		maxGuesses = 6,
 		solution = "words",
@@ -37,7 +39,9 @@ export class Game {
 		correctness = {} as Record<string, Correctness>,
 		gameName = "Wurdle",
 		gameOver = false,
+		shareText = "",
 		cheated = false,
+		won = false,
 	}) {
 		this.config = config;
 		this.wordLength = wordLength;
@@ -48,10 +52,12 @@ export class Game {
 		this.currentGuess = currentGuess;
 		this.guesses = guesses;
 		this.correctness = correctness;
+		this.correctnessStore = writable(correctness);
 		this.gameName = gameName;
 		this.gameOver = gameOver;
-		this.correctnessStore = writable(correctness);
+		this.shareText = shareText;
 		this.cheated = cheated;
+		this.won = won;
 
 		Object.defineProperty(window, "pleasegivemethesolutioniamcheating", {
 			get: () => ((this.cheated = true), this.solution),
@@ -59,26 +65,16 @@ export class Game {
 		});
 	}
 
-	static async random() {
-		const {
-			wordLength,
-			maxGuesses = 6,
-			pick,
-			valid,
-		}: {
-			wordLength: number;
-			maxGuesses: number;
-			pick: string[];
-			valid: string[];
-		} = await fetch("/default-config.json").then(res => res.json());
+	static async random(config = configStore.value) {
+		const { wordLength, pick, valid } = config;
 		const choices = pick
 			.filter(word => word.length === wordLength)
 			.map(word => word.toLowerCase());
+
 		const solution = choices[Math.floor(Math.random() * choices.length)];
 		return new Game({
-			config: "/default-config.json",
+			config,
 			wordLength,
-			maxGuesses,
 			solution,
 			choices,
 			validWords: new Set(
@@ -87,10 +83,11 @@ export class Game {
 					.map(word => word.toLowerCase())
 					.concat(choices),
 			),
+			maxGuesses: 6,
 			currentGuess: 0,
-			guesses: Array<string>(maxGuesses).fill(""),
+			guesses: Array<string>(6).fill(""),
 			correctness: {},
-			gameName: "Random Wurdle",
+			gameName: config.lang.gameTypes.random,
 			gameOver: false,
 		});
 	}
@@ -98,8 +95,10 @@ export class Game {
 		return new Game(save);
 	}
 
-	async save() {
-		const key = `game-${this.gameName.toLowerCase().replace(/\s/g, "-")}`;
+	async save(setCurrent: boolean = true) {
+		const key = `${this.config.langCode}-game-${this.gameName
+			.toLowerCase()
+			.replace(/\s/g, "-")}`;
 		localStorage.setItem(
 			key,
 			JSON.stringify(this, (key, value) => {
@@ -107,6 +106,8 @@ export class Game {
 				return value;
 			}),
 		);
+		if (setCurrent)
+			localStorage.setItem(`current-${this.config.langCode}`, key);
 		return key;
 	}
 
@@ -128,6 +129,7 @@ export class Game {
 		return ret;
 	}
 	async endGame(win: boolean) {
+		this.won = win;
 		this.gameOver = true;
 		const share = this.guesses
 			.slice(0, this.currentGuess)
@@ -137,16 +139,16 @@ export class Game {
 			this.maxGuesses
 		}\n\n${share}`;
 		await navigator.clipboard.writeText(this.shareText);
-		sendNotification(`You ${win ? "won" : "lost"}! Copied share to clipboard.`);
+		sendNotification(win ? "won" : "lost");
 	}
 
 	async guessWord(guess: string) {
 		if (guess.length !== this.wordLength)
-			return sendNotification("Word not long enough."), "invalid";
+			return sendNotification("tooShort"), "invalid";
 		if (this.guesses.includes(guess))
-			return sendNotification("You've already guessed that!"), "invalid";
+			return sendNotification("alreadyGuessed"), "invalid";
 		if (!this.validWords.has(guess))
-			return sendNotification("That's not a word!"), "invalid";
+			return sendNotification("invalidWord"), "invalid";
 		this.guesses[this.currentGuess++] = guess;
 		if (guess === this.solution) return await this.endGame(true), "won";
 		if (this.currentGuess === this.maxGuesses)

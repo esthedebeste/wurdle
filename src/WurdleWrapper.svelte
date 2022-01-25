@@ -1,28 +1,40 @@
 <script lang="ts">
+	import { onDestroy } from "svelte";
 	import { Game } from "./game.js";
+	import { configStore, type Config } from "./settings.js";
 	import Wurdle from "./views/Wurdle.svelte";
-	let game = localStorage.getItem("current")
-		? Game.fromSave(
-				JSON.parse(localStorage.getItem(localStorage.getItem("current"))),
-		  )
-		: Game.random();
+	const loadGame = (config: Config) =>
+		localStorage.getItem(`current-${config.langCode}`)
+			? Game.fromSave(
+					JSON.parse(
+						localStorage.getItem(
+							localStorage.getItem(`current-${config.langCode}`),
+						),
+					),
+			  )
+			: Game.random(config);
+	let game: Promise<Game>;
 
-	addEventListener("beforeunload", async () => {
-		const key = await (await game).save();
-		localStorage.setItem("current", key);
+	const save = async () => {
+		await (await game)?.save();
+	};
+	addEventListener("beforeunload", save);
+
+	configStore.subscribe(async config => {
+		if (!config) return;
+		await save();
+		game = loadGame(config);
+	});
+	onDestroy(() => {
+		removeEventListener("beforeunload", save);
+		save();
 	});
 </script>
 
-{#await game}
-	<p>Loading game...</p>
-{:then resolved}
-	<Wurdle
-		game={resolved}
-		onRestart={async () => (
-			((await game).guessWord = () => {
-				throw new Error("AAAAAAAAAAA");
-			}),
-			(game = Game.random())
-		)}
-	/>
-{/await}
+{#if game != null}
+	{#await game}
+		<p>Loading game...</p>
+	{:then resolved}
+		<Wurdle game={resolved} onRestart={async () => (game = Game.random())} />
+	{/await}
+{/if}

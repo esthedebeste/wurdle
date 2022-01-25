@@ -17,8 +17,9 @@
 	setContext("wordLength", game.wordLength);
 	setContext("maxGuesses", game.maxGuesses);
 	setContext("correctness", game.correctnessStore);
+	console.log(game.solution);
 	let guess = "";
-	let won = false;
+	let won = game.won;
 	const guessWord = async () => {
 		const guessC = guess;
 		guess = "";
@@ -58,7 +59,7 @@
 	export let onRestart: () => void;
 </script>
 
-<main>
+<main on:blur={() => game.save(true)}>
 	<div>
 		{#each [...guesses.keys()] as i}
 			{#if i === currentGuess}
@@ -70,17 +71,17 @@
 	</div>
 
 	<Keyboard on:type={type} />
-</main>
 
-{#if gameOver}
-	<GameOver
-		restartable
-		shareText={game.shareText}
-		{gameName}
-		{won}
-		{onRestart}
-	/>
-{/if}
+	{#if gameOver}
+		<GameOver
+			restartable
+			shareText={game.shareText}
+			{gameName}
+			{won}
+			{onRestart}
+		/>
+	{/if}
+</main>
 
 <style>
 	main {

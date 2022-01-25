@@ -1,16 +1,19 @@
 <script lang="ts" context="module">
 	import { writable } from "svelte/store";
 	import { fly } from "svelte/transition";
+	import { configStore, type Lang } from "./settings.js";
 
 	export const notifications = writable([]);
+	let lang: Lang;
+	configStore.subscribe(config => (lang = config && config.lang));
 	export const sendNotification = (
-		message: string,
+		message: keyof Lang["notifications"],
 		type = "default",
 		timeout = 3000,
 	) => {
 		notifications.update(state => [
 			...state,
-			{ id: Date.now(), type, message, timeout },
+			{ id: Date.now(), type, message: lang.notifications[message], timeout },
 		]);
 		setTimeout(() => notifications.update(state => state.slice(1)), timeout);
 	};
