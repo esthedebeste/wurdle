@@ -1,5 +1,4 @@
 import { writable, type Writable } from "svelte/store";
-// @ts-ignore
 import { sendNotification } from "./Notifications.svelte";
 import { configStore, type Config } from "./settings.js";
 
@@ -95,7 +94,7 @@ export class Game {
 		return new Game(save);
 	}
 
-	async save(setCurrent: boolean = true) {
+	async save(setCurrent = true) {
 		const key = `${this.config.langCode}-game-${this.gameName
 			.toLowerCase()
 			.replace(/\s/g, "-")}`;
