@@ -3,6 +3,7 @@
 	import { fade } from "svelte/transition";
 	import { sendNotification } from "../Notifications.svelte";
 	import Localized from "./Localized.svelte";
+
 	export let restartable: boolean;
 	export let gameName: string;
 	export let shareText: string;
@@ -32,10 +33,22 @@
 					><Localized key="again" /></button
 				>
 			</span>
-			<button class="share" on:click={copyShare}>
-				<Localized key="share" />
-				<img src="/copy.svg" alt="" aria-hidden={true} />
-			</button>
+			<span>
+				<button class="share" on:click={copyShare}>
+					<Localized key="share" />
+					<img src="/copy.svg" alt="" aria-hidden={true} />
+				</button>
+			</span>
+			<a
+				class="tweet"
+				href="https://twitter.com/intent/tweet?text={encodeURIComponent(
+					shareText,
+				)}"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<img src="/twitter.svg" alt="tweet" />
+			</a>
 		</div>
 	</span>
 </div>
@@ -82,7 +95,8 @@
 		border-right: #fff 1px solid;
 	}
 
-	button {
+	button,
+	a {
 		box-sizing: border-box;
 		font-size: 1.2em;
 		padding: 0.5em;
@@ -112,6 +126,15 @@
 	button.restart {
 		background-color: #4e538d;
 		color: #fff;
+	}
+
+	a.tweet img {
+		height: 1.2em;
+		vertical-align: middle;
+	}
+
+	a.tweet {
+		background-color: #fff;
 	}
 
 	p.share-text {
