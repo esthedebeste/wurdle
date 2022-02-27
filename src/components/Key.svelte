@@ -11,9 +11,7 @@
 	const type = getContext("typeCallback") as (key: string) => void;
 </script>
 
-<button on:click={() => type(key)} class={correct} class:mono={key.length === 1}
-	>{key}</button
->
+<button on:click={() => type(key)} class={correct}>{key}</button>
 
 <style>
 	button {
@@ -29,8 +27,6 @@
 		background-color: #acacac;
 		border: none;
 		border-radius: 0.5em;
-	}
-	.mono {
 		text-transform: full-width;
 	}
 	.w {

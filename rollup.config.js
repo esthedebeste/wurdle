@@ -1,6 +1,7 @@
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
+import { spawn } from "child_process";
 import rimraf from "rimraf";
 import css from "rollup-plugin-css-only";
 import livereload from "rollup-plugin-livereload";
@@ -10,14 +11,13 @@ import sveltePreprocess from "svelte-preprocess";
 
 const production = !process.env.ROLLUP_WATCH;
 
-async function serve() {
+function serve() {
 	let server;
 	function toExit() {
 		if (server) server.kill(0);
 	}
 	process.on("SIGTERM", toExit);
 	process.on("exit", toExit);
-	const { spawn } = await import("child_process");
 	return {
 		writeBundle() {
 			if (server) return;
