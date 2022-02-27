@@ -28,6 +28,12 @@ configStore.subscribe(c => (configStore.value = c));
 
 const setConfigBy = async (key: string, value: string) => {
 	const config = configs.find(c => c[key] === value);
+	if (config == null)
+		throw new Error(
+			`No config found for ${key}=${value} (Configs: ${JSON.stringify(
+				configs,
+			)})`,
+		);
 	localStorage.setItem("language", config.href);
 	configStore.set(await getConfig(config));
 };
@@ -37,7 +43,8 @@ if (localStorage.getItem("language"))
 else
 	configStore.set(
 		await getConfig(
-			configs.find(config => navigator.language.startsWith(config.langCode)),
+			configs.find(config => navigator.language.startsWith(config.langCode)) ||
+				configs[0],
 		),
 	);
 

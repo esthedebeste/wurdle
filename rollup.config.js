@@ -10,14 +10,14 @@ import sveltePreprocess from "svelte-preprocess";
 
 const production = !process.env.ROLLUP_WATCH;
 
-function serve() {
+async function serve() {
 	let server;
 	function toExit() {
 		if (server) server.kill(0);
 	}
 	process.on("SIGTERM", toExit);
 	process.on("exit", toExit);
-	const { spawn } = require("child_process");
+	const { spawn } = await import("child_process");
 	return {
 		writeBundle() {
 			if (server) return;
